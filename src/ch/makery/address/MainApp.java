@@ -9,7 +9,9 @@ import javax.xml.bind.Marshaller;
 
 import ch.makery.address.model.Person;
 import ch.makery.address.model.PersonListWrapper;
+import ch.makery.address.view.BirthdayStatisticsController;
 import ch.makery.address.view.PersonOverviewController;
+import ch.makery.address.view.RootLayoutController;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -74,13 +76,25 @@ public class MainApp extends Application {
 			loader.setLocation(MainApp.class.getResource("view/RootLayout.fxml"));
 			rootLayout = (BorderPane) loader.load();
 
-			// Mostra a scene (cena) contendo oroot layout.
+			// Mostra a scene (cena) contendo o root layout.
 			Scene scene = new Scene(rootLayout);
 			primaryStage.setScene(scene);
+
+			// Dá ao controller o acesso ao main app.
+			RootLayoutController controller = loader.getController();
+			controller.setMainApp(this);
+
 			primaryStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		// Tenta carregar o último arquivo de pessoa aberto.
+		File file = getPersonFilePath();
+		if (file != null) {
+			loadPersonDataFromFile(file);
+		}
+
 	}
 
 	public void showPersonOverview() {
@@ -222,6 +236,33 @@ public class MainApp extends Application {
 	                    .masthead("Não foi possível salvar os dados do arquivo:\n" 
 	                              + file.getPath()).showException(e);
 	        }
+
+	/**
+	 * Abre uma janela para mostrar as estatísticas de aniversário.
+	 */
+	public void showBirthdayStatistics() {
+		try {
+			// Carrega o arquivo fxml e cria um novo palco para o popup.
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(MainApp.class.getResource("view/BirthdayStatistics.fxml"));
+			AnchorPane page = (AnchorPane) loader.load();
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle("Birthday Statistics");
+			dialogStage.initModality(Modality.WINDOW_MODAL);
+			dialogStage.initOwner(primaryStage);
+			Scene scene = new Scene(page);
+			dialogStage.setScene(scene);
+
+			// Define a pessoa dentro do controller.
+			BirthdayStatisticsController controller = loader.getController();
+			controller.setPersonData(personData);
+
+			dialogStage.show();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public Stage getPrimaryStage() {
 		return primaryStage;
